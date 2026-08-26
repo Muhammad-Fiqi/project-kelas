@@ -1,0 +1,112 @@
+{
+  "app_name": "MULEH",
+  "personality": "7 Dark-First Utility DARK",
+  "personality_one_liner": "An offline AR navigation HUD designed for instant return-to-start guidance in extreme environments with tactical amber accents.",
+  "color": {
+    "surface": "#121417",
+    "onSurface": "#F0F2F5",
+    "surfaceSecondary": "#1A1D24",
+    "onSurfaceSecondary": "#9AA0A6",
+    "surfaceTertiary": "#252932",
+    "onSurfaceTertiary": "#BDC1C6",
+    "surfaceInverse": "#FFFFFF",
+    "onSurfaceInverse": "#121417",
+    "brand": "#FF6B00",
+    "brandPrimary": "#FF6B00",
+    "onBrandPrimary": "#FFFFFF",
+    "brandSecondary": "#E05E00",
+    "onBrandSecondary": "#FFFFFF",
+    "brandTertiary": "rgba(255, 107, 0, 0.15)",
+    "onBrandTertiary": "#FF9E40",
+    "success": "#34A853",
+    "onSuccess": "#FFFFFF",
+    "warning": "#FBBC04",
+    "onWarning": "#121417",
+    "error": "#EA4335",
+    "onError": "#FFFFFF",
+    "info": "#4285F4",
+    "onInfo": "#FFFFFF",
+    "border": "#2D323B",
+    "borderStrong": "#FF6B00",
+    "divider": "#252932"
+  },
+  "typography": {
+    "displayFontFamily": "Barlow Condensed",
+    "textFontFamily": "Satoshi",
+    "scale": {
+      "sm": 12,
+      "base": 14,
+      "lg": 16,
+      "xl": 20,
+      "2xl": 24
+    }
+  },
+  "spacing": {
+    "rule": "Generous and operational spacing hierarchy optimized for glanceability during movement",
+    "xs": 4,
+    "sm": 8,
+    "md": 12,
+    "lg": 16,
+    "xl": 24,
+    "2xl": 32,
+    "3xl": 48
+  },
+  "radius_tokens": {
+    "sm": 6,
+    "md": 12,
+    "lg": 20,
+    "pill": 999
+  },
+  "shadow_tier": "0",
+  "navigation": "stack_only",
+  "icon_set": "MaterialCommunityIcons",
+  "glassmorphism": {
+    "enabled": true,
+    "do's": [
+      "Use frosted glass header and bottom HUD controls over AR camera viewfinder",
+      "Apply translucent tinted base ≥75% opacity in dark mode"
+    ],
+    "dont's": [
+      "Never blur body text or interactive control inputs",
+      "Never allow background imagery to compromise metric readability"
+    ]
+  },
+  "platform_libraries": {
+    "glass": {
+      "ios": "expo-glass-effect",
+      "android": "expo-blur",
+      "low_end_android_fallback": "solid surfaceSecondary"
+    },
+    "image": "expo-image",
+    "blur": "expo-blur",
+    "bottom_sheet": "@gorhom/bottom-sheet",
+    "animation": "react-native-reanimated",
+    "gesture": "react-native-gesture-handler"
+  },
+  "screens": [
+    {
+      "name": "ARNavigationHome",
+      "purpose": "Main AR navigation heads-up display with camera placeholder, recording toggle, AR mode switcher, and directional assist arrow.",
+      "states": {
+        "loading": "Calibrating spatial sensors and GPS beacons...",
+        "empty": "No active return route recorded. Tap Start Recording to begin tracking.",
+        "error": "GPS signal lost. Falling back to offline compass heading."
+      },
+      "layout": "Full-screen dark AR viewfinder base layer with absolute positioned top status HUD, floating central directional assist arrow, dynamic AR display mode switcher (Dots / Arrows / Pin), and a sticky bottom control panel with the primary Start/Stop recording action and telemetry summary."
+    }
+  ],
+  "images": {
+    "ar_viewfinder_bg": {
+      "url": "https://images.unsplash.com/photo-1674033846163-fe3ea31c1f97?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "dark": "https://images.unsplash.com/photo-1674033846163-fe3ea31c1f97?crop=entropy&cs=srgb&fm=jpg&q=85",
+      "alt": "Cinematic night forest drone light beam radar background"
+    }
+  },
+  "instructions_to_main_agent": [
+    "Build MULEH mobile app using React Native / Expo following Personality 7 Dark-First Utility DARK.",
+    "Ensure the first frontend screen is the AR Navigation Home screen featuring a camera placeholder view, start/stop recording action, AR display mode switcher (dots, arrows, start pin), and a prominent directional assist arrow.",
+    "Apply high-contrast operational styling with tactical amber accent (#FF6B00) and deep obsidian surfaces (#121417).",
+    "Implement glassmorphic top HUD and bottom control container over the AR camera preview with required opacity and readability scrims.",
+    "Ensure all tap targets are ≥44x44pt and follow safe area guidelines."
+  ]
+}
