@@ -1,0 +1,41 @@
+{
+  "summary": "Backend-only verification pass for MULEH navigation session + track point APIs. All 17 pytest cases pass against the public preview (https://ngpk-dev-workflow.preview.emergentagent.com). Coverage: POST /api/sessions (with/without name, missing start_point 422, no _id leak), POST /api/sessions/{id}/points (sequence starts at 0, increments, 404 unknown, 400 when session flipped to completed via direct Mongo update), POST /api/sessions/{id}/points/batch (empty list -> [], sequences start from 0 on fresh session, continue from current point_count when mixed with single-add, 404 unknown, 400 completed), GET /api/sessions/{id}/route (returns session + start_point + points sorted ascending by sequence, empty when no points, 404 unknown, no Mongo _id leak). Frontend was intentionally skipped per request.",
+  "backend_issues": {
+    "critical": [],
+    "minor": []
+  },
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [],
+    "react_native_issues": []
+  },
+  "test_report_links": [
+    "/app/backend/tests/test_navigation_api.py",
+    "/app/backend/tests/conftest.py",
+    "/app/test_reports/pytest/pytest_results.xml"
+  ],
+  "action_items": [
+    "Consider adding a PATCH/POST endpoint to transition a session to 'completed' (currently only reachable by direct DB mutation, which tests worked around).",
+    "Consider capping batch size and validating latitude in [-90,90] / longitude in [-180,180] via Pydantic Field constraints; current schema accepts any float."
+  ],
+  "critical_code_review_comments": [
+    "server.py uses deprecated FastAPI @app.on_event('startup'/'shutdown'); prefer lifespan context (non-blocking, but slated for removal).",
+    "add_track_point / add_track_points_batch update point_count via $inc after inserting points; under high concurrency two parallel batch calls on the same session could produce non-contiguous sequences because start_seq is read before insert. Fine for a single-device recorder but worth noting.",
+    "get_session_route uses .to_list(10000) — a hard cap; long recordings would silently truncate. Consider pagination or streaming."
+  ],
+  "updated_files": [
+    "/app/backend/tests/conftest.py",
+    "/app/backend/tests/test_navigation_api.py",
+    "/app/test_reports/iteration_2.json"
+  ],
+  "success_rate": {
+    "backend": "100% (17/17 passing)",
+    "frontend": "not tested (backend-only request)"
+  },
+  "seed_data_creation": "Tests create TEST_-prefixed sessions and track points in the `test_database` DB. Cleanup fixture intentionally omitted to avoid a cross-worker race under pytest-xdist LoadScopeScheduling (see rca_of_issue). Data is left in the test DB; safe to drop manually if needed.",
+  "retest_needed": false,
+  "should_main_agent_self_test": false,
+  "context_for_next_testing_agent": "pytest.ini pins `-n 2 --dist loadscope`. Any session-scoped autouse cleanup fixture that wildcard-deletes by name will race across workers (worker A finishing early wipes rows worker B is still using). Keep cleanup either per-test-function scoped or drop the whole DB in a single-worker session hook. Base URL comes from frontend/.env EXPO_PUBLIC_BACKEND_URL; conftest loads both backend and frontend .env files.",
+  "rca_of_issue": "During initial run one test (test_route_returns_sorted_points) intermittently failed with points == [] while session.point_count == 4. Manual curl reproduction against the same endpoints worked correctly, ruling out a server bug. Root cause: an autouse session-scoped cleanup fixture that deleted all TEST_* sessions and their track_points on teardown. Under pytest-xdist with 2 workers, worker A's session ends as soon as its assigned classes finish and its teardown deletes TEST_* rows globally — including rows that worker B just created for tests still in flight. Removed the wildcard cleanup fixture; all 17 tests now pass deterministically across multiple runs. Backend endpoints themselves have no defect."
+}
