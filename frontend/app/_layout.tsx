@@ -5,6 +5,7 @@ import { LogBox } from "react-native";
 
 import { useIconFonts } from "@/src/hooks/use-icon-fonts";
 import { TrackingSessionProvider } from "@/src/state/tracking-session";
+import { TrialProvider } from "@/src/state/trial-context";
 
 
 // Disable logbox errors etc so that users can see the app
@@ -31,8 +32,10 @@ export default function RootLayout() {
   if (!loaded && !error) return null;
 
   return (
-    <TrackingSessionProvider>
-      <Stack screenOptions={{ headerShown: false }} />
-    </TrackingSessionProvider>
+    <TrialProvider>
+      <TrackingSessionProvider>
+        <Stack screenOptions={{ headerShown: false }} />
+      </TrackingSessionProvider>
+    </TrialProvider>
   );
 }

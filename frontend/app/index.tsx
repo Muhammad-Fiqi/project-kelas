@@ -6,12 +6,15 @@ import { useEffect, useRef } from "react";
 import { Animated, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { formatDuration, useTrackingSession } from "@/src/state/tracking-session";
-import { getTrialStatus } from "@/src/data/mock-trial";
+import { useTrial } from "@/src/state/trial-context";
+import { TrialReminderBanner } from "@/src/components/trial-reminder-banner";
 import { formatSavedAt } from "@/src/data/mock-history";
 
 export default function Home() {
   const insets = useSafeAreaInsets();
-  const { isTracking, elapsedSec, telemetry, history, startSession, stopSession } = useTrackingSession();
+  const { isTracking, elapsedSec, telemetry, history, startSession } = useTrackingSession();
+  const { trial } = useTrial();
+  const locked = !trial.isPurchased && trial.isExpired;
   const pulse = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -34,6 +37,11 @@ export default function Home() {
     router.push("/recording");
   };
 
+  const handleStopFromHome = () => {
+    // Arahkan user ke halaman perekaman yang memiliki alur simpan rute.
+    router.push("/recording");
+  };
+
   return (
     <View style={styles.container}>
       <LinearGradient colors={["#10161A", "#0D1114", "#121417"]} style={StyleSheet.absoluteFill} />
@@ -52,6 +60,7 @@ export default function Home() {
           accessibilityRole="button"
           accessibilityLabel="Pengaturan"
           testID="settings-button"
+          onPress={() => router.push("/settings")}
           style={({ pressed }) => [styles.iconButton, pressed && styles.pressed]}
         >
           <MaterialCommunityIcons name="cog-outline" size={22} color="#F0F2F5" />
@@ -63,19 +72,23 @@ export default function Home() {
         contentContainerStyle={[styles.scrollContent, { paddingBottom: Math.max(insets.bottom, 16) + 16 }]}
         showsVerticalScrollIndicator={false}
       >
-        <Pressable
-          testID="trial-banner"
-          accessibilityRole="button"
-          accessibilityLabel="Lihat masa percobaan"
-          onPress={() => router.push("/trial")}
-          style={({ pressed }) => [styles.trialBanner, pressed && styles.pressed]}
-        >
-          <MaterialCommunityIcons name="timer-sand" size={16} color="#FF9E40" />
-          <Text style={styles.trialBannerText}>
-            TRIAL · SISA {getTrialStatus().remainingLabel.toUpperCase()}
-          </Text>
-          <MaterialCommunityIcons name="chevron-right" size={18} color="#FF9E40" />
-        </Pressable>
+        {trial.isPurchased ? (
+          <Pressable
+            testID="trial-banner"
+            accessibilityRole="button"
+            accessibilityLabel="Status lisensi"
+            onPress={() => router.push("/trial")}
+            style={({ pressed }) => [styles.trialBanner, styles.trialBannerPurchased, pressed && styles.pressed]}
+          >
+            <MaterialCommunityIcons name="shield-check" size={16} color="#34A853" />
+            <Text style={[styles.trialBannerText, styles.trialBannerTextPurchased]}>
+              LISENSI AKTIF
+            </Text>
+            <MaterialCommunityIcons name="chevron-right" size={18} color="#34A853" />
+          </Pressable>
+        ) : (
+          <TrialReminderBanner testID="trial-banner" />
+        )}
         <View testID="session-status-card" style={[styles.statusCard, isTracking && styles.statusCardActive]}>
           <View style={styles.statusHeader}>
             <Text style={styles.eyebrow}>STATUS SESI</Text>
@@ -136,45 +149,54 @@ export default function Home() {
         <Pressable
           testID="start-tracking-button"
           accessibilityRole="button"
-          accessibilityLabel={isTracking ? "Hentikan tracking" : "Mulai tracking"}
-          onPress={isTracking ? stopSession : handleStart}
-          style={({ pressed }) => [styles.primaryButton, isTracking && styles.stopButton, pressed && styles.pressed]}
+          accessibilityLabel={locked ? "Fitur terkunci" : isTracking ? "Hentikan tracking" : "Mulai tracking"}
+          onPress={locked ? () => router.push("/trial") : isTracking ? handleStopFromHome : handleStart}
+          style={({ pressed }) => [styles.primaryButton, isTracking && styles.stopButton, locked && styles.lockedButton, pressed && styles.pressed]}
         >
-          <View style={[styles.primaryIconWrap, isTracking && styles.stopIconWrap]}>
-            <MaterialCommunityIcons name={isTracking ? "stop" : "map-marker-plus"} size={26} color={isTracking ? "#F0F2F5" : "#121417"} />
+          <View style={[styles.primaryIconWrap, isTracking && styles.stopIconWrap, locked && styles.lockedIconWrap]}>
+            <MaterialCommunityIcons name={locked ? "lock" : isTracking ? "stop" : "map-marker-plus"} size={26} color={locked ? "#9AA0A6" : isTracking ? "#F0F2F5" : "#121417"} />
           </View>
           <View style={styles.primaryTextWrap}>
-            <Text style={[styles.primaryTitle, isTracking && styles.stopTitle]}>
-              {isTracking ? "HENTIKAN TRACKING" : "MULAI TRACKING"}
+            <Text style={[styles.primaryTitle, isTracking && styles.stopTitle, locked && styles.lockedTitle]}>
+              {locked ? "FITUR TERKUNCI" : isTracking ? "HENTIKAN TRACKING" : "MULAI TRACKING"}
             </Text>
-            <Text style={[styles.primarySub, isTracking && styles.stopSub]}>
-              {isTracking ? "Akhiri sesi & simpan rute" : "Set titik awal & rekam rute"}
+            <Text style={[styles.primarySub, isTracking && styles.stopSub, locked && styles.lockedSub]}>
+              {locked ? "Beli MULEH untuk membuka tracking" : isTracking ? "Akhiri sesi & simpan rute" : "Set titik awal & rekam rute"}
             </Text>
           </View>
-          <MaterialCommunityIcons name="chevron-right" size={26} color={isTracking ? "rgba(240,242,245,0.6)" : "rgba(18,20,23,0.65)"} />
+          <MaterialCommunityIcons name={locked ? "chevron-right" : "chevron-right"} size={26} color={locked ? "#9AA0A6" : isTracking ? "rgba(240,242,245,0.6)" : "rgba(18,20,23,0.65)"} />
         </Pressable>
 
         <Pressable
           testID="open-ar-view-button"
           accessibilityRole="button"
-          accessibilityLabel="Buka tampilan AR"
-          onPress={() => router.push("/ar-view")}
-          style={({ pressed }) => [styles.secondaryButton, pressed && styles.pressed]}
+          accessibilityLabel={locked ? "Fitur terkunci" : "Buka tampilan AR"}
+          onPress={locked ? () => router.push("/trial") : () => router.push("/ar-view")}
+          style={({ pressed }) => [styles.secondaryButton, locked && styles.lockedButton, pressed && styles.pressed]}
         >
           <View style={styles.secondaryIconWrap}>
-            <MaterialCommunityIcons name="augmented-reality" size={24} color="#FF9E40" />
+            <MaterialCommunityIcons name={locked ? "lock" : "augmented-reality"} size={24} color={locked ? "#9AA0A6" : "#FF9E40"} />
           </View>
           <View style={styles.primaryTextWrap}>
-            <Text style={styles.secondaryTitle}>BUKA TAMPILAN AR</Text>
-            <Text style={styles.secondarySub}>Lihat rute pulang lewat kamera</Text>
+            <Text style={styles.secondaryTitle}>{locked ? "FITUR TERKUNCI" : "BUKA TAMPILAN AR"}</Text>
+            <Text style={styles.secondarySub}>{locked ? "Beli MULEH untuk membuka AR" : "Lihat rute pulang lewat kamera"}</Text>
           </View>
           <MaterialCommunityIcons name="chevron-right" size={24} color="#9AA0A6" />
         </Pressable>
 
-        <View style={styles.sectionHeader}>
+        <Pressable
+          testID="see-all-history-button"
+          accessibilityRole="button"
+          accessibilityLabel="Lihat semua riwayat rute"
+          onPress={() => router.push("/history")}
+          style={({ pressed }) => [styles.sectionHeader, pressed && styles.pressed]}
+        >
           <Text style={styles.sectionTitle}>RIWAYAT RUTE</Text>
-          <Text style={styles.sectionMeta}>{history.length} SESI</Text>
-        </View>
+          <View style={styles.sectionMetaRow}>
+            <Text style={styles.sectionMeta}>{history.length} SESI</Text>
+            <MaterialCommunityIcons name="chevron-right" size={16} color="#FF9E40" />
+          </View>
+        </Pressable>
         {history.length === 0 ? (
           <View testID="history-empty-state" style={styles.emptyCard}>
             <MaterialCommunityIcons name="map-clock-outline" size={30} color="#9AA0A6" />
@@ -189,6 +211,7 @@ export default function Home() {
               accessibilityRole="button"
               accessibilityLabel={`Riwayat rute ${route.name}`}
               style={({ pressed }) => [styles.historyCard, pressed && styles.pressed]}
+              onPress={() => router.push({ pathname: "/route-detail", params: { id: route.id } })}
             >
               <View style={styles.historyIcon}>
                 <MaterialCommunityIcons name="map-marker-path" size={20} color="#FF9E40" />
@@ -225,7 +248,9 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   scrollContent: { paddingHorizontal: 18, paddingTop: 6, gap: 14 },
   trialBanner: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 8, minHeight: 44, borderRadius: 12, borderWidth: 1, borderColor: "rgba(255,107,0,0.4)", backgroundColor: "rgba(255,107,0,0.10)", paddingHorizontal: 14 },
+  trialBannerPurchased: { borderColor: "rgba(52,168,83,0.4)", backgroundColor: "rgba(52,168,83,0.10)" },
   trialBannerText: { flex: 1, color: "#FF9E40", fontSize: 11, fontWeight: "900", letterSpacing: 1.2 },
+  trialBannerTextPurchased: { color: "#34A853" },
   statusCard: { backgroundColor: "#1A1D24", borderRadius: 20, borderWidth: 1, borderColor: "#2D323B", padding: 18 },
   statusCardActive: { borderColor: "#FF6B00" },
   statusHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 12 },
@@ -263,6 +288,7 @@ const styles = StyleSheet.create({
   secondarySub: { color: "#9AA0A6", fontSize: 12, marginTop: 2 },
   sectionHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 10 },
   sectionTitle: { color: "#F0F2F5", fontSize: 13, fontWeight: "900", letterSpacing: 1.6 },
+  sectionMetaRow: { flexDirection: "row", alignItems: "center", gap: 4 },
   sectionMeta: { color: "#9AA0A6", fontSize: 10, fontWeight: "700", letterSpacing: 1 },
   emptyCard: { backgroundColor: "#1A1D24", borderRadius: 20, borderWidth: 1, borderColor: "#2D323B", borderStyle: "dashed", alignItems: "center", paddingVertical: 28, paddingHorizontal: 20, gap: 6 },
   historyCard: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: "#1A1D24", borderRadius: 16, borderWidth: 1, borderColor: "#2D323B", padding: 14, minHeight: 64 },
@@ -272,5 +298,9 @@ const styles = StyleSheet.create({
   historyMeta: { color: "#9AA0A6", fontSize: 11, marginTop: 3 },
   emptyTitle: { color: "#F0F2F5", fontSize: 14, fontWeight: "800", marginTop: 4 },
   emptyBody: { color: "#9AA0A6", fontSize: 12, textAlign: "center" },
+  lockedButton: { backgroundColor: "#1A1D24", borderWidth: 1, borderColor: "#2D323B", opacity: 0.55 },
+  lockedIconWrap: { backgroundColor: "#252932" },
+  lockedTitle: { color: "#9AA0A6" },
+  lockedSub: { color: "#9AA0A6" },
   pressed: { opacity: 0.72, transform: [{ scale: 0.98 }] },
 });

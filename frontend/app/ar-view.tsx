@@ -5,6 +5,9 @@ import { router } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { useEffect, useRef, useState } from "react";
+
+import { useTrial } from "@/src/state/trial-context";
+import { FeatureLockOverlay } from "@/src/components/feature-lock-overlay";
 import {
   Animated,
   Linking,
@@ -31,7 +34,10 @@ const routePath = buildRoutePath();
 
 export default function ArView() {
   const insets = useSafeAreaInsets();
-  const { isTracking: recording, elapsedSec, telemetry, startSession, stopSession } = useTrackingSession();
+  const { isTracking: recording, elapsedSec, telemetry } = useTrackingSession();
+  const { trial } = useTrial();
+  const locked = !trial.isPurchased && trial.isExpired;
+  const [showLock, setShowLock] = useState(locked);
   const [mode, setMode] = useState<ArMode>("DOTS");
   const [permission, requestPermission] = useCameraPermissions();
   const [cameraOn, setCameraOn] = useState(false);
@@ -89,10 +95,16 @@ export default function ArView() {
     return () => loop.stop();
   }, [pulse]);
 
-  const toggleRecording = () => (recording ? stopSession() : startSession());
+  const toggleRecording = () => {
+    if (recording) {
+      // Arahkan ke halaman perekaman yang memiliki alur simpan rute.
+      router.push("/recording");
+    }
+  };
 
   return (
     <View style={styles.container}>
+      <FeatureLockOverlay visible={showLock} featureName="Tampilan AR Navigasi" onClose={() => { setShowLock(false); router.back(); }} />
       <LinearGradient colors={["#10161A", "#0D1114", "#121417"]} style={StyleSheet.absoluteFill} />
       {cameraOn && permission?.granted && (
         <CameraView style={StyleSheet.absoluteFill} facing="back" />

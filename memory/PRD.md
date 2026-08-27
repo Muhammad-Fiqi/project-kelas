@@ -27,8 +27,12 @@ Aplikasi mobile "MULEH" — navigasi AR offline untuk kembali ke titik awal (par
 - `POST /api/sessions/{id}/points/batch` — tambah banyak titik sekaligus
 - `GET /api/sessions/{id}/route` — ambil rute lengkap {session, start_point, points[] terurut}
 
-### Berikutnya — Fase 2 Frontend (CHECKPOINT: menunggu "lanjut" dari user)
-- Task berikut: `muleh/mulai-tracking/buat-halaman-utama-layout` ("Buat halaman utama & layout", page "Mulai Tracking", 13 task frontend tersisa di fase 2)
+### Berikutnya — Semua task selesai ✅
+- Phase 1 Frontend: navigasi AR + 3 mode tampilan + UI assist
+- Phase 1 Backend: sessions, track points, sensor readings, route builder
+- Phase 2 Frontend: halaman utama, recording, history, route detail, AsyncStorage
+- Phase 3 Backend: trial 3 hari, lisensi, Google Play Billing, autentikasi akun
+- Phase 4 Frontend: halaman lisensi, gating fitur, auto-refresh, API service, purchase hook
 
 ## Skema DB
 - `navigation_sessions`: {id (uuid), name?, status: recording|completed, start_point {latitude, longitude, altitude?, accuracy?}, point_count, started_at, ended_at?}

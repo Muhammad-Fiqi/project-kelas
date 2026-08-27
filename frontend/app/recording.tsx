@@ -16,6 +16,7 @@ import {
 } from "react-native";
 
 import { formatDuration, useTrackingSession } from "@/src/state/tracking-session";
+import { TrialReminderBanner } from "@/src/components/trial-reminder-banner";
 
 export default function Recording() {
   const insets = useSafeAreaInsets();
@@ -77,6 +78,8 @@ export default function Recording() {
         </View>
         <View style={styles.iconSpacer} />
       </View>
+
+      <TrialReminderBanner dismissible={false} testID="recording-trial-banner" />
 
       <View style={styles.center}>
         <Animated.View testID="recording-indicator" style={[styles.recRingOuter, { transform: [{ scale: pulse }] }]}>
