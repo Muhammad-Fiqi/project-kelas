@@ -10,7 +10,10 @@
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.emergent.ngpkdevworkflow.obx4gg"
+      "bundleIdentifier": "com.emergent.ngpkdevworkflow.obx4gg",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Lihat rute pulangmu lewat tampilan AR kamera"
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -18,7 +21,8 @@
         "backgroundColor": "#000000"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.emergent.ngpkdevworkflow.obx4gg"
+      "package": "com.emergent.ngpkdevworkflow.obx4gg",
+      "permissions": ["android.permission.CAMERA"]
     },
     "web": {
       "bundler": "metro",
